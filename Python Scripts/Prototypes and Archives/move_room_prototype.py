@@ -49,10 +49,4 @@ def move_room(move_choice):
             current_room = rooms_dict[current_room.possible_directions[move_choice]]
             print(f'You have moved to {current_room.name}')
             return current_room
-
-while choice != '0':
-    choice = input('Where would you like to go? ')
-    current_room = move_room(choice)
-
-
-        
+               
