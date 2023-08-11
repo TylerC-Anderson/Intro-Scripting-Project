@@ -17,7 +17,7 @@ CANNOT_GO_THAT_WAY = "You bumped into a wall."
 GAME_OVER = "Thanks for playing."
 EXIT_ROOM_SENTINEL = "exit"
 
-def navigate(current_room: str, user_input: str, rooms: dict):
+def navigate(current_room: str, user_input: str, rooms: list):
     """
     Given a current_room in rooms and a user_input, return a tuple (next_room, err_msg) with
     next_room -- where you are after or EXIT_ROOM_SENTINEL
@@ -36,6 +36,8 @@ def navigate(current_room: str, user_input: str, rooms: dict):
 
         # Then checking if the valid command is a valid direction the room has
         # then moving player according to their command if so
+
+        # TODO Fix this so that it works with the new rooms list and namedtuples
         elif user_input in rooms[current_room]:
             next_room = rooms[current_room][user_input]
 
