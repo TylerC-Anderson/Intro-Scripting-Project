@@ -6,8 +6,7 @@ module for printing in a user friendly way.
 INPUTS: Accepts user input for navigation and grabbing items.
 """
 
-import move_room
-import grab_item
+import game_utils
 import sys,time
 
 # initialize the conditions for the game
@@ -20,14 +19,15 @@ CANNOT_GO_THAT_WAY = "You bumped into a wall."
 GAME_OVER = "Thanks for playing."
 EXIT_ROOM_SENTINEL = "exit"
 
-rooms = move_room.rooms_dict()
-player_inventory = []
+rooms = game_utils.rooms_dict()
 
 def main():
     """
     Contains the loop that will run the game until the exit condition is satisfied. Starts in the Start room and prints a welcome message.
     """
     current_room = 'Start'
+    player_inventory = []
+    err_msg = ''
 
     # starting welcome message
     delprint(
@@ -39,26 +39,26 @@ def main():
         # Prompt message, using the delayed print function below to print the
         # prompt in a more user friendly way.
         delprint(
-            f"Current room: {rooms[current_room].name}\nCurrent inventory: {player_inventory}\n\nWhat would you like to do?\nYou may enter any of the following: {VALID_INPUTS}.\n\n")
+            f"Current room: {rooms[current_room].name}\nCurrent inventory: {player_inventory}\n\nValid commands: {VALID_INPUTS}.\nValid directions: {DIRECTIONS}.\n\nWhat would you like to do?\n\n")
         user_input = input()
-        user_input = user_input.title().strip().split
-        command = user_input[0]
-        item_or_direction = user_input[1]
+        split_input = user_input.title().strip().split()
+        command = split_input[0]
+        item_or_direction = split_input[1]
 
         # Passing the current room and user_input to the navigate function below
         # and changing the current room variable and error message equal to its
         # output.
 
         if command == 'Move' or command == EXIT_ROOM_SENTINEL:
-            current_room, err_msg = move_room.navigate(current_room, item_or_direction)
+            current_room, err_msg = game_utils.navigate(current_room, item_or_direction)
 
         elif command == 'Grab':
-            player_inventory, err_msg = grab_item(item_or_direction, player_inventory, current_room)
+            player_inventory, err_msg = game_utils.grab_item(item_or_direction, player_inventory, current_room)
 
         # If there is any error message, print it out using delprint.
         # Also prints game over message when exit condition occurs.
         if err_msg:
-            delprint(f'{err_msg}\n')
+            delprint(f'{err_msg}\n\n')
 
 def delprint(text,delay_time = 0.0025):
     """
