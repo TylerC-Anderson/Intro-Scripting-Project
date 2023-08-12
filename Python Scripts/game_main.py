@@ -43,7 +43,9 @@ def main():
         user_input = input()
         split_input = user_input.title().strip().split()
         command = split_input[0]
-        item_or_direction = split_input[1]
+        item_or_direction = ' '.join(split_input[1:])
+
+        print(item_or_direction)
 
         # Passing the current room and user_input to the navigate function below
         # and changing the current room variable and error message equal to its

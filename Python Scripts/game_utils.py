@@ -47,13 +47,13 @@ cell_blocks = RoomsTuple(
     possible_directions={
         'North':'West EVA', 'South':'South Junction',
         'East':'North Junction'},
-    item='universal_translator',
+    item='Universal Translator',
     description = None,
     is_end_room = False)
 flight_control = RoomsTuple(
     name='Flight Control',
     possible_directions={'East':'South Junction'},
-    item='hangar_key',
+    item='Hangar Key',
     description = None,
     is_end_room = False)
 south_junction = RoomsTuple(
@@ -61,7 +61,7 @@ south_junction = RoomsTuple(
     possible_directions={
         'North':'Cell Blocks', 'West':'Flight Control',
         'East':'Empty Hall'},
-    item='map',
+    item='Map of the Ship',
     description = None,
     is_end_room = False)
 empty_hall = RoomsTuple(
@@ -69,28 +69,28 @@ empty_hall = RoomsTuple(
     possible_directions={
         'South':'Hidden Room', 'West':'South Junction',
         'East':'Armory'},
-    item='va_nav',
+    item=None,
     description = None,
     is_end_room = False)
 hidden_room = RoomsTuple(
     name='Hidden Room',
     possible_directions={
         'North':'Empty Hall'},
-    item='va_nav',
+    item='Voice Activated Navigator',
     description = None,
     is_end_room = False)
 armory = RoomsTuple(
     name='Armory',
     possible_directions={
         'North':'Arsenal', 'West':'Empty Hall'},
-    item='cloaking_device',
+    item='Cloaking Device',
     description = None,
     is_end_room = False)
 arsenal = RoomsTuple(
     name='Arsenal',
     possible_directions={
         'South':'Armory', 'West':'North Junction'},
-    item='baton',
+    item='Baton',
     description = None,
     is_end_room = False)
 north_junction = RoomsTuple(
@@ -98,7 +98,7 @@ north_junction = RoomsTuple(
     possible_directions={
         'North':'East EVA', 'East':'Arsenal',
         'West':'Cell Blocks'},
-    item='map',
+    item='Map of the Ship',
     description = None,
     is_end_room = False)
 east_eva = RoomsTuple(
@@ -106,7 +106,7 @@ east_eva = RoomsTuple(
     possible_directions={
         'North':'Hangar', 'South':'North Junction',
         'West':'West EVA'},
-    item='space_suit',
+    item='Space Suit',
     description = None,
     is_end_room = False)
 west_eva = RoomsTuple(
@@ -114,14 +114,14 @@ west_eva = RoomsTuple(
     possible_directions={
         'North':'Hangar', 'South':'Cell Blocks',
         'East':'East EVA'},
-    item='space_suit',
+    item='Space Suit',
     description = None,
     is_end_room = False)
 hangar = RoomsTuple(
     name='Hangar',
     possible_directions={
         'East':'East EVA', 'West':'West EVA'},
-    item='space_suit',
+    item=None,
     description = None,
     is_end_room=True)
 
@@ -145,15 +145,16 @@ def rooms_dict():
     return rooms
 
 rooms = rooms_dict()
-err_msg = ''
+
 
 def grab_item(item_choice: str, player_inventory: list, current_room):
     """   
     """
+    err_msg = ''
 
     # if the item chosen exists in this room
     if item_choice == rooms[current_room].item:
-
+        print("Grab Item command success.")
         # and the player does not already have the item
         # add item to player inventory
         if item_choice not in player_inventory:
