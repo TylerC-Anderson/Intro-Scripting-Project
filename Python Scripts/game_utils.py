@@ -190,7 +190,7 @@ def navigate(current_room: str, user_input: str):
     rooms = rooms_dict()
 
     # First checking if command links to valid input
-    if user_input in DIRECTIONS or EXIT_COMMAND:
+    if user_input in DIRECTIONS or user_input == EXIT_COMMAND:
         
         # Then checking for exit command, and printing GAME_OVER message and moving
         # next room to the exit state.
@@ -216,7 +216,6 @@ def navigate(current_room: str, user_input: str):
         # Then checking if the valid command is a valid direction the room has
         # then moving player according to their command if so
 
-        # TODO Fix this so that it works with the new rooms list and namedtuples
         elif user_input in rooms[current_room].possible_directions:
             next_room = rooms[current_room].possible_directions[user_input]
             return next_room, err_msg

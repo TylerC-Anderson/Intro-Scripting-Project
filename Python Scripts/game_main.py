@@ -41,15 +41,21 @@ def main():
         delprint(
             f"Current room: {rooms[current_room].name}\nCurrent inventory: {player_inventory}\n\nValid commands: {VALID_INPUTS}.\nValid directions: {DIRECTIONS}.\n\nWhat would you like to do?\n\n")
         user_input = input()
-        split_input = user_input.title().strip().split()
-        command = split_input[0]
-        item_or_direction = ' '.join(split_input[1:])
+
+        if user_input.title() != 'Exit':
+            split_input = user_input.title().strip().split()
+            command = split_input[0]
+            item_or_direction = ' '.join(split_input[1:])
+
+        else:
+            item_or_direction = user_input.title().strip()
+            command = ''
 
         # Passing the current room and user_input to the navigate function below
         # and changing the current room variable and error message equal to its
         # output.
 
-        if command == 'Move' or command == EXIT_ROOM_SENTINEL:
+        if command == 'Move' or item_or_direction == EXIT_COMMAND:
             current_room, err_msg = game_utils.navigate(current_room, item_or_direction)
             if not err_msg:
                 delprint(f"You move to {rooms[current_room].name}\n\n")
