@@ -12,10 +12,11 @@ INPUTS:
 from collections import namedtuple
 import sys,time
 
+COMMANDS = ['Move', 'Grab']
 DIRECTIONS = ['North', 'South', 'East', 'West']
 EXIT_COMMAND = "Exit"
-VALID_INPUTS = DIRECTIONS + [EXIT_COMMAND]
-INVALID_DIRECTION = f"That is not a valid direction. You need to enter one of: {str(VALID_INPUTS)}."
+VALID_INPUTS = COMMANDS + [EXIT_COMMAND]
+INVALID_COMMAND = f"That is not a valid command. You need to enter one of the following commands: {str(VALID_INPUTS)}.\nIf you enter a move command, it must be in one of the following directions: {DIRECTIONS}.\n If you are trying to grab an item, you need to enter the items name with your grab command."
 CANNOT_GO_THAT_WAY = "You bumped into a wall."
 GAME_OVER = "Thanks for playing."
 EXIT_ROOM_SENTINEL = "exit"
@@ -29,11 +30,12 @@ def navigate(current_room: str, user_input: str):
     next_room = current_room
     err_msg = ''
     rooms = rooms_dict()
+
     # First checking if command links to valid input
     if user_input in VALID_INPUTS:
+        
         # Then checking for exit command, and printing GAME_OVER message and moving
         # next room to the exit state.
-
         if user_input.lower() == EXIT_COMMAND.lower():
             delprint("Are you sure you'd like to exit?\n")
             delprint("Progress is NOT saved.\n\n")
@@ -70,7 +72,7 @@ def navigate(current_room: str, user_input: str):
     # Then checking if the user_input links is not a valid input, assigning
     # appropriate error message.
     else:
-        err_msg = INVALID_DIRECTION
+        err_msg = INVALID_COMMAND
     return next_room, err_msg
 
     
