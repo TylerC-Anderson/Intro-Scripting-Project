@@ -154,7 +154,6 @@ def grab_item(item_choice: str, player_inventory: list, current_room):
 
     # if the item chosen exists in this room
     if item_choice == rooms[current_room].item:
-        print("Grab Item command success.")
         # and the player does not already have the item
         # add item to player inventory
         if item_choice not in player_inventory:
@@ -193,7 +192,6 @@ def navigate(current_room: str, user_input: str):
     # First checking if command links to valid input
     if user_input in DIRECTIONS or EXIT_COMMAND:
         
-        print("Move command success")
         # Then checking for exit command, and printing GAME_OVER message and moving
         # next room to the exit state.
         if user_input.lower() == EXIT_COMMAND.lower():

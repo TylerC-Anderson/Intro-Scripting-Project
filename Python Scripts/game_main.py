@@ -45,17 +45,19 @@ def main():
         command = split_input[0]
         item_or_direction = ' '.join(split_input[1:])
 
-        print(item_or_direction)
-
         # Passing the current room and user_input to the navigate function below
         # and changing the current room variable and error message equal to its
         # output.
 
         if command == 'Move' or command == EXIT_ROOM_SENTINEL:
             current_room, err_msg = game_utils.navigate(current_room, item_or_direction)
+            if not err_msg:
+                delprint(f"You move to {rooms[current_room].name}\n\n")
 
         elif command == 'Grab':
             player_inventory, err_msg = game_utils.grab_item(item_or_direction, player_inventory, current_room)
+            if not err_msg:
+                delprint(f"You pick up the {rooms[current_room].item}\n\n")
 
         # If there is any error message, print it out using delprint.
         # Also prints game over message when exit condition occurs.
