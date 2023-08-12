@@ -1,3 +1,5 @@
+# Move Room function
+
 """
 PURPOSE: For allowing the player to move between rooms in the game.
 
@@ -7,6 +9,7 @@ INPUTS:
 - rooms -- the dictionary of rooms and their connections
 """
 
+import game_map
 
 DIRECTIONS = ['North', 'South', 'East', 'West']
 EXIT_COMMAND = "Exit"
@@ -38,8 +41,8 @@ def navigate(current_room: str, user_input: str, rooms: list):
         # then moving player according to their command if so
 
         # TODO Fix this so that it works with the new rooms list and namedtuples
-        elif user_input in rooms[current_room]:
-            next_room = rooms[current_room][user_input]
+        elif user_input in game_map.rooms_list(current_room):
+            next_room = game_map.mapping(current_room, user_input)
 
         # If the input is valid, but the direction given is not exit or a direction
         # the room has, we are assuming the player can't go that way. Output
