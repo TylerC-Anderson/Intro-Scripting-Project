@@ -26,7 +26,7 @@ EXIT_ROOM_SENTINEL = "exit"
 
 fields = [
 'name', 'item', 
-'possible_directions', 'description',
+'possible_directions',
 'is_end_room']
 
 # initialize the tuple category, rooms
@@ -39,7 +39,6 @@ RoomsTuple = namedtuple(
 start = RoomsTuple(
     name='Start',
     possible_directions={'East':'Cell Blocks'},
-    description = None,
     item = None,
     is_end_room = False)
 cell_blocks = RoomsTuple(
@@ -48,21 +47,18 @@ cell_blocks = RoomsTuple(
         'North':'West EVA', 'South':'South Junction',
         'East':'North Junction'},
     item='Universal Translator',
-    description = None,
     is_end_room = False)
 flight_control = RoomsTuple(
     name='Flight Control',
     possible_directions={'East':'South Junction'},
     item='Hangar Key',
-    description = None,
     is_end_room = False)
 south_junction = RoomsTuple(
     name='South Junction',
     possible_directions={
         'North':'Cell Blocks', 'West':'Flight Control',
         'East':'Empty Hall'},
-    item='Map of the Ship',
-    description = None,
+    item='Ship Map',
     is_end_room = False)
 empty_hall = RoomsTuple(
     name='Empty Hall',
@@ -70,36 +66,31 @@ empty_hall = RoomsTuple(
         'South':'Hidden Room', 'West':'South Junction',
         'East':'Armory'},
     item=None,
-    description = None,
     is_end_room = False)
 hidden_room = RoomsTuple(
     name='Hidden Room',
     possible_directions={
         'North':'Empty Hall'},
     item='Voice Activated Navigator',
-    description = None,
     is_end_room = False)
 armory = RoomsTuple(
     name='Armory',
     possible_directions={
         'North':'Arsenal', 'West':'Empty Hall'},
     item='Cloaking Device',
-    description = None,
     is_end_room = False)
 arsenal = RoomsTuple(
     name='Arsenal',
     possible_directions={
         'South':'Armory', 'West':'North Junction'},
     item='Baton',
-    description = None,
     is_end_room = False)
 north_junction = RoomsTuple(
     name='North Junction',
     possible_directions={
         'North':'East EVA', 'East':'Arsenal',
         'West':'Cell Blocks'},
-    item='Map of the Ship',
-    description = None,
+    item='Ship Map',
     is_end_room = False)
 east_eva = RoomsTuple(
     name='East EVA',
@@ -107,7 +98,6 @@ east_eva = RoomsTuple(
         'North':'Hangar', 'South':'North Junction',
         'West':'West EVA'},
     item='Space Suit',
-    description = None,
     is_end_room = False)
 west_eva = RoomsTuple(
     name='West EVA',
@@ -115,14 +105,12 @@ west_eva = RoomsTuple(
         'North':'Hangar', 'South':'Cell Blocks',
         'East':'East EVA'},
     item='Space Suit',
-    description = None,
     is_end_room = False)
 hangar = RoomsTuple(
     name='Hangar',
     possible_directions={
         'East':'East EVA', 'West':'West EVA'},
     item=None,
-    description = None,
     is_end_room=True)
 
 def rooms_dict():
