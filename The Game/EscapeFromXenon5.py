@@ -54,7 +54,6 @@ def main():
 
         # Prompt message, using the delayed print function below to print the
         # prompt in a more user friendly way.
-        print(was_here)
         delprint(
             f"Current room: {rooms[current_room].name}\nCurrent inventory: {player_inventory}\n\nValid commands: {VALID_INPUTS}.\nValid directions: {DIRECTIONS}.\n\nWhat would you like to do?\n\n")
         user_input = input()
