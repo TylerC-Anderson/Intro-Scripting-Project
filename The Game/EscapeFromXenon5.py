@@ -13,27 +13,32 @@ import sys,time
 from pathlib import Path
 
 # initialize the error codes and valid inputs for the game
-COMMANDS = ['Move', 'Grab']
+COMMANDS = ['Move', 'Grab', 'Examine']
 DIRECTIONS = ['North', 'South', 'East', 'West']
 EXIT_COMMAND = "Exit"
 VALID_INPUTS = COMMANDS + [EXIT_COMMAND]
 INVALID_COMMAND = f"That is not a valid command. You need to enter one of the following commands: {str(VALID_INPUTS)}.\nIf you enter a move command, it must be in one of the following directions: {str(DIRECTIONS)}.\n If you are trying to grab an item, you need to enter the items name with your grab command."
 CANNOT_GO_THAT_WAY = "You bumped into a wall."
-GAME_OVER = "Thanks for playing."
+GAME_OVER = "Thanks for playing!"
 EXIT_ROOM_SENTINEL = "exit"
+NOT_VISITED_OR_GRABBED = "You don't see that item anywhere in here, or you are not in that room. Please try again."
 
 # initialize the win conditions and best ending conditions
+# and sorting them for easier comparison
 WIN_CON = [
     'Universal Translator', 'Hangar Key',
     'Ship Map', 'Space Suit',
     'Cloaking Device', 'Baton',
     ]
+WIN_CON = sorted(WIN_CON)
 BEST_ENDING = WIN_CON + ['Voice Activated Navigator']
+BEST_ENDING = sorted(BEST_ENDING)
 
 # initialize the rooms dictionary from game_utils for readability
 # and the description document
 rooms = game_utils.rooms_dict()
 desc_doc = ''
+parent_dir = Path(__file__).parent.resolve() / 'Test Descriptions'
 
 
 def main():
@@ -49,19 +54,28 @@ def main():
     command = ''
     item_or_direction = ''
     desc_doc = "Start_room.txt"
-    doc_path = Path(__file__).parent.resolve() / 'Descriptions' /  desc_doc
+    doc_path = parent_dir /  desc_doc
 
     # starting welcome message
     doc_reader(doc_path)
     delprint('\n\nWelcome to the game.\n\n')
 
+    # Adding start to the was_here list
+    was_here.append(current_room)
+
     # Game loop running while exit conditions are not satisfied
     while current_room != EXIT_ROOM_SENTINEL:
+        
+        # Test for win condition
+        player_inventory = WIN_CON  # for testing purposes
+
+        # Sort players inventory for easier comparison
+        player_inventory = sorted(player_inventory)
 
         # Prompt message, using the delayed print function below to print the
         # prompt in a more user friendly way.
         delprint(
-            f"Current room: {rooms[current_room].name}\nCurrent inventory: {player_inventory}\n\nValid commands: {VALID_INPUTS}.\nValid directions: {DIRECTIONS}.\n\nWhat would you like to do?\n\n")
+            f"Current room: {rooms[current_room].name}\nCurrent inventory: {player_inventory}\n\nValid commands: {VALID_INPUTS}.\nValid directions: {DIRECTIONS}.\n \"Examine\" will redisplay an item or room description.\n\nWhat would you like to do?\n\n")
         user_input = input()
         
         # Checking if the user input is valid and splitting it into a command
@@ -95,7 +109,7 @@ def main():
                 else:
                     was_here.append(rooms[current_room].name)
                     desc_doc = f"{rooms[current_room].name}_room.txt"
-                    doc_path = Path(__file__).parent.resolve() / 'Descriptions' /  desc_doc
+                    doc_path = parent_dir /  desc_doc
                     doc_reader(doc_path)
                     print('\n\n')
 
@@ -104,18 +118,76 @@ def main():
         # if there is one.
         elif command == 'Grab':
             player_inventory, err_msg = game_utils.grab_item(item_or_direction, player_inventory, current_room)
+
+            # If there is no error, print a message and the description of the item
             if not err_msg:
                 delprint(f"You pick up the {rooms[current_room].item}\n\n")
+                desc_doc = f"{rooms[current_room].item}_item.txt"
+                doc_path = parent_dir /  desc_doc
+                doc_reader(doc_path)
+                print('\n\n')
+
+        # If the player wishes to Examine, print the description of the item or direction
+        # again for the player.
+        elif command == 'Examine':
+
+            # If the player is examining a room they are in or have been to,
+            # print the room description again.
+            if item_or_direction in was_here or item_or_direction == rooms[current_room].name:
+                desc_doc = f"{current_room}_room.txt"
+                doc_path = parent_dir /  desc_doc
+                doc_reader(doc_path)
+                print('\n\n')
+
+            # If the player is examining an item they have in inventory or is in the room,
+            # print the item description again.
+            elif item_or_direction in player_inventory or item_or_direction == rooms[current_room].item:
+                desc_doc = f"{item_or_direction}_item.txt"
+                doc_path = parent_dir /  desc_doc
+                doc_reader(doc_path)
+                print('\n\n')
+
+            # Otherwise, print an error message.
+            else:
+                delprint(f'{NOT_VISITED_OR_GRABBED}\n\n')
 
         # If there is any error message, print it out using delprint.
         # Also prints game over message when exit condition occurs.
         if err_msg:
             delprint(f'{err_msg}\n\n')
+
+        # If the player has the win condition items in their inventory, print the
+        # win message and break the loop.
+
+        # FIXME: This isn't working yet. Python isn't comparing the two properly.
+        # I think it's because the lists are in different orders. Need to sort them
+        # before comparing.
+        if (player_inventory == WIN_CON or player_inventory == BEST_ENDING) and current_room == rooms['Hangar']:
+
+            # If the player has the best ending items in their inventory, print the
+            # best ending message and break the loop.
+            if player_inventory == BEST_ENDING:
+                desc_doc = "Best_Win.txt"
+                doc_path = parent_dir /  desc_doc
+                doc_reader(doc_path)
+                print('\n')
+                delprint(F'{GAME_OVER}!!')
+                current_room = EXIT_ROOM_SENTINEL
+
+            # If the player has the standard ending items in their inventory, print the
+            # standard ending message and break the loop.
+            else:
+                desc_doc = "Win_Msg.txt"
+                doc_path = parent_dir /  desc_doc
+                doc_reader(doc_path)
+                print('\n')
+                delprint(F'{GAME_OVER}!!')
+                current_room = EXIT_ROOM_SENTINEL
         
 
 
 
-def delprint(text,delay_time = 0.00000000025):
+def delprint(text,delay_time=0.00000000000000000000000001):
     """
     Short for delayed print. Prints character by character instead of printing
     all output to terminal at once. Makes for a nicer user experience.
