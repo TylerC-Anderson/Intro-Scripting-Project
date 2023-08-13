@@ -14,22 +14,42 @@ from collections import namedtuple
 import sys,time
 
 # initialize the error codes and valid inputs for the game
-NOT_IN_ROOM = "You don't see that item anywhere in here. Please try again."
-ALREADY_GRABBED = "You check your pockets... Yes, that item is still there. You don't think you need another one."
-COMMANDS = ['Move', 'Grab']
+COMMANDS = ['Move', 'Grab', 'Examine']
 DIRECTIONS = ['North', 'South', 'East', 'West']
 EXIT_COMMAND = "Exit"
 VALID_INPUTS = COMMANDS + [EXIT_COMMAND]
+EXIT_ROOM_SENTINEL = "exit"
+GAME_OVER = "Thanks for playing."
+
+NOT_IN_ROOM = "You don't see that item anywhere in here. Please try again."
+ALREADY_GRABBED = "You check your pockets... Yes, that item is still there. You don't think you need another one."
 INVALID_COMMAND = f"That is not a valid command. You need to enter one of the following commands: {str(VALID_INPUTS)}.\nIf you enter a move command, it must be in one of the following directions: {DIRECTIONS}.\n If you are trying to grab an item, you need to enter the items name with your grab command."
 CANNOT_GO_THAT_WAY = "You bumped into a wall."
-GAME_OVER = "Thanks for playing."
-EXIT_ROOM_SENTINEL = "exit"
+NOT_VISITED_OR_GRABBED = "You don't see that item anywhere in here, or you are not in that room. Please try again."
+MISSING_ITEM = "You think you need an item you don't have yet to get there. Please try again."
+
+def errors_search(error_code):
+    """
+    Returns the error message associated with the error code. Allows accessiblity from
+    other modules.
+    """
+    errors_dict = {
+        'NOT_IN_ROOM':NOT_IN_ROOM,
+        'ALREADY_GRABBED':ALREADY_GRABBED,
+        'INVALID_COMMAND':INVALID_COMMAND,
+        'CANNOT_GO_THAT_WAY':CANNOT_GO_THAT_WAY,
+        'NOT_VISITED_OR_GRABBED':NOT_VISITED_OR_GRABBED,
+        'MISSING_ITEM':MISSING_ITEM
+    }
+    error_message_text = errors_dict[error_code]
+
+    return error_message_text
 
 # setting the fields for the tuple in a variable for modularization
 fields = [
 'name', 'item', 
 'possible_directions',
-'is_end_room']
+'required_items']
 
 # initialize the tuple category, rooms
 RoomsTuple = namedtuple(
@@ -42,78 +62,78 @@ start = RoomsTuple(
     name='Start',
     possible_directions={'East':'Cell Blocks'},
     item = None,
-    is_end_room = False)
+    required_items = None)
 cell_blocks = RoomsTuple(
     name='Cell Blocks', 
     possible_directions={
         'North':'West EVA', 'South':'South Junction',
         'East':'North Junction'},
     item='Universal Translator',
-    is_end_room = False)
+    required_items = None)
 flight_control = RoomsTuple(
     name='Flight Control',
     possible_directions={'East':'South Junction'},
     item='Hangar Key',
-    is_end_room = False)
+    required_items = None)
 south_junction = RoomsTuple(
     name='South Junction',
     possible_directions={
         'North':'Cell Blocks', 'West':'Flight Control',
         'East':'Empty Hall'},
     item='Ship Map',
-    is_end_room = False)
+    required_items = None)
 empty_hall = RoomsTuple(
     name='Empty Hall',
     possible_directions={
         'South':'Hidden Room', 'West':'South Junction',
         'East':'Armory'},
     item=None,
-    is_end_room = False)
+    required_items = None)
 hidden_room = RoomsTuple(
     name='Hidden Room',
     possible_directions={
         'North':'Empty Hall'},
     item='Voice Activated Navigator',
-    is_end_room = False)
+    required_items = None)
 armory = RoomsTuple(
     name='Armory',
     possible_directions={
         'North':'Arsenal', 'West':'Empty Hall'},
     item='Cloaking Device',
-    is_end_room = False)
+    required_items = None)
 arsenal = RoomsTuple(
     name='Arsenal',
     possible_directions={
         'South':'Armory', 'West':'North Junction'},
     item='Baton',
-    is_end_room = False)
+    required_items = None)
 north_junction = RoomsTuple(
     name='North Junction',
     possible_directions={
         'North':'East EVA', 'East':'Arsenal',
         'West':'Cell Blocks'},
     item='Ship Map',
-    is_end_room = False)
+    required_items = None)
 east_eva = RoomsTuple(
     name='East EVA',
     possible_directions={
         'North':'Hangar', 'South':'North Junction',
         'West':'West EVA'},
     item='Space Suit',
-    is_end_room = False)
+    required_items = None)
 west_eva = RoomsTuple(
     name='West EVA',
     possible_directions={
         'North':'Hangar', 'South':'Cell Blocks',
         'East':'East EVA'},
     item='Space Suit',
-    is_end_room = False)
+    required_items = None)
 hangar = RoomsTuple(
     name='Hangar',
     possible_directions={
         'East':'East EVA', 'West':'West EVA'},
     item=None,
-    is_end_room=True)
+    required_items=True)
 
 def rooms_dict():
     """Simple lookup function for the rooms list."""
