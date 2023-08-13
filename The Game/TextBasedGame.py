@@ -1,9 +1,18 @@
+### ESCAPE FROM XENON-5 ###
+ ## By Tyler C Anderson ##
+
 # Game Main
+
 """
 PURPOSE: Contains the main script for the game, including the play loop and a
-module for printing in a user friendly way.
+module for printing in a user friendly way. Also contains win conditions,
+decision branching for those win cons and error messages.
 
 INPUTS: Accepts user input for navigation and grabbing items.
+
+OTHER MODULES: game_utils.py -- contains the rooms dictionary, rooms tuples and
+the functions, navigate and grab_item. The remaining modules are imported for
+the delayed print function, and for accepting room descriptions from text files.
 """
 
 # import the game_utils module, which contains the rooms dictionary and the
@@ -23,22 +32,25 @@ GAME_OVER = "Thanks for playing!"
 EXIT_ROOM_SENTINEL = "exit"
 NOT_VISITED_OR_GRABBED = "You don't see that item anywhere in here, or you are not in that room. Please try again."
 
-# initialize the win conditions and best ending conditions
-# and sorting them for easier comparison
+# initialize the win conditions and best ending conditions and sort them for
+# easier comparison
 WIN_CON = [
     'Universal Translator', 'Hangar Key',
     'Ship Map', 'Space Suit',
     'Cloaking Device', 'Baton',
     ]
-WIN_CON = sorted(WIN_CON)
 BEST_ENDING = WIN_CON + ['Voice Activated Navigator']
-BEST_ENDING = sorted(BEST_ENDING)
+WIN_CON.sort()
+BEST_ENDING.sort()
 
-# initialize the rooms dictionary from game_utils for readability
-# and the description document
+# initialize the rooms dictionary from game_utils for readability and the
+# description document
 rooms = game_utils.rooms_dict()
 desc_doc = ''
-parent_dir = Path(__file__).parent.resolve() / 'Test Descriptions'
+
+# initialize the parent directory for the description documents
+parent_dir = Path(__file__).parent.resolve() / 'Descriptions'
+# parent_dir = Path(__file__).parent.resolve() / 'Test Descriptions' # uncomment to test with the test descriptions
 
 
 def main():
@@ -56,6 +68,11 @@ def main():
     desc_doc = "Start_room.txt"
     doc_path = parent_dir /  desc_doc
 
+    # Test for win condition, uncomment desired Win-con (best or standard) to
+    # test
+    # player_inventory = WIN_CON  # for testing purposes
+    # player_inventory = BEST_ENDING  # for testing purposes
+
     # starting welcome message
     doc_reader(doc_path)
     delprint('\n\nWelcome to the game.\n\n')
@@ -65,9 +82,6 @@ def main():
 
     # Game loop running while exit conditions are not satisfied
     while current_room != EXIT_ROOM_SENTINEL:
-        
-        # Test for win condition
-        player_inventory = WIN_CON  # for testing purposes
 
         # Sort players inventory for easier comparison
         player_inventory = sorted(player_inventory)
@@ -75,7 +89,7 @@ def main():
         # Prompt message, using the delayed print function below to print the
         # prompt in a more user friendly way.
         delprint(
-            f"Current room: {rooms[current_room].name}\nCurrent inventory: {player_inventory}\n\nValid commands: {VALID_INPUTS}.\nValid directions: {DIRECTIONS}.\n \"Examine\" will redisplay an item or room description.\n\nWhat would you like to do?\n\n")
+            f"Current room: {rooms[current_room].name}\nCurrent inventory: {player_inventory}\nItem in room: {rooms[current_room].item}\n\nValid commands: {VALID_INPUTS}.\nValid directions: {DIRECTIONS}.\nExamine will redisplay an item or room description.\n\nWhat would you like to do?\n\n")
         user_input = input()
         
         # Checking if the user input is valid and splitting it into a command
@@ -159,10 +173,9 @@ def main():
         # If the player has the win condition items in their inventory, print the
         # win message and break the loop.
 
-        # FIXME: This isn't working yet. Python isn't comparing the two properly.
         # I think it's because the lists are in different orders. Need to sort them
         # before comparing.
-        if (player_inventory == WIN_CON or player_inventory == BEST_ENDING) and current_room == rooms['Hangar']:
+        if (player_inventory == WIN_CON or player_inventory == BEST_ENDING) and rooms[current_room].name == rooms['Hangar'].name:
 
             # If the player has the best ending items in their inventory, print the
             # best ending message and break the loop.
