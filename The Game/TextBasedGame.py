@@ -28,7 +28,9 @@ DIRECTIONS = ['North', 'South', 'East', 'West']
 EXIT_COMMAND = "Exit"
 VALID_INPUTS = COMMANDS + [EXIT_COMMAND]
 EXIT_ROOM_SENTINEL = "exit"
-GAME_OVER = "Thanks for playing!\n\n"
+GAME_OVER = "Thanks for playing! I hope you enjoyed the game."
+PLAYER_DEATH = 'You turned the corner and saw The Captain too late...\nIt pulls out a strange looking implement and you see a brilliant blue flash for the briefest moment before you die.\n\nGAME OVER\n\n'
+END_CREDITS = 'Created by Tyler Anderson, 2023\n\nIncludes modules from @Muffinlavania/The Slow Print on replit and from u/GeorgeBoca.'
 
 # initialize the win conditions and best ending conditions and sort them for
 # easier comparison
@@ -46,6 +48,7 @@ BEST_ENDING.sort()
 rooms = game_utils.rooms_dict()
 err_list = game_utils.errors_search
 desc_doc = ''
+best_ending_check = False
 
 # initialize the delay print default value based on the OS
 if platform.system() == "Windows":
@@ -66,6 +69,7 @@ def main():
     command = ''
     item_or_direction = ''
     desc_doc = "Start_room.txt"
+    
 
     # initialize the parent directory for the description documents
     parent_dir = Path(__file__).parent.resolve() / 'Descriptions'
@@ -97,20 +101,20 @@ def main():
     elif test_mode_input[0] == 't':
         delprint("Test mode enabled.\n")
         parent_dir = Path(__file__).parent.resolve() / 'Test Descriptions'
+        
         delprint("Press Y to use god mode (all items in inventory, WinCon ready). Enter to not enable god mode.\n")
-
         test_mode_input = input().lower().strip()
         if len(test_mode_input) == 0:
             pass
         elif test_mode_input[0] == 'y':
             delprint("God mode enabled.\n")
-            delprint("Press B for best ending. Press enter for standard ending.\n")
             
+            delprint("Press Y for best ending. Press enter for standard ending.\n")
             test_mode_input = input().lower().strip()
             if len(test_mode_input) == 0:
                 player_inventory = WIN_CON
                 pass
-            elif test_mode_input[0] == 'b':
+            elif test_mode_input[0] == 'y':
                 delprint("Best ending enabled.\n")
                 player_inventory = BEST_ENDING
             else:
@@ -134,6 +138,7 @@ def main():
 
         # Sort players inventory for easier comparison
         player_inventory = sorted(player_inventory)
+        previous_room = current_room
 
         # Prompt message, using the delayed print function below to print the
         # prompt in a more user friendly way.
@@ -190,6 +195,32 @@ def main():
                     doc_path = parent_dir /  desc_doc
                     doc_reader(doc_path)
                     print('\n')
+                    # If the player does not have the right items in their inventory to be
+                    # in the current room, print the feedback and game over message
+                    if rooms[current_room].required_items != None and player_inventory != BEST_ENDING:
+                        for item in rooms[current_room].required_items:
+                            if item not in player_inventory:
+                                fail_condition = game_utils.items_required(current_room, player_inventory)
+                        
+                                delprint(F'{fail_condition}\n')
+                                delprint(F'{PLAYER_DEATH}Would you like to try again? (Y/N)\n')
+                                user_input = input().strip().lower()
+
+                                # If the player wants to try again, respawn them in the previous room
+                                # and remove the current room from the was_here list. Otherwise, print
+                                # the game over message and break the loop.
+                                if user_input == 'y':
+                                    if rooms[previous_room].name != 'Start':
+                                        delprint(F'You have respawned back in {rooms[previous_room].name}.\n')
+                                        was_here.remove(rooms[current_room].name)
+                                        current_room = previous_room
+                                    elif rooms[previous_room].name == 'Start':
+                                        delprint(F'You have respawned back in {rooms[previous_room].name}.\n')
+                                        current_room = previous_room
+                                elif user_input == 'n':
+                                    delprint(F'{GAME_OVER}\n')
+                                    command = 'Exit'
+                                    current_room = EXIT_ROOM_SENTINEL
 
         # If the command is grab, pass the item_or_direction and current room to the
         # grab_item function below and update the player inventory. Print error message
@@ -254,7 +285,9 @@ def main():
                     doc_path = parent_dir /  desc_doc
                     doc_reader(doc_path)
                     print('\n')
-                    delprint(F'{GAME_OVER}!!')
+                    delprint(F'{GAME_OVER}!!\n\n')
+                    delprint(F'{END_CREDITS}\n\n')
+                    input(F'Press enter to exit the game.\n\n')
                     current_room = EXIT_ROOM_SENTINEL
 
                 # If the player has the standard ending items in their inventory, print the
@@ -264,11 +297,9 @@ def main():
                     doc_path = parent_dir /  desc_doc
                     doc_reader(doc_path)
                     print('\n')
-                    delprint(F'{GAME_OVER}!!')
+                    delprint(F'{GAME_OVER}!\n\n')
+                    delprint(F'{END_CREDITS}\n\n')
                     current_room = EXIT_ROOM_SENTINEL
-            
-
-
 
 def delprint(text, delay_time=del_print_default):
     """
@@ -302,7 +333,7 @@ def examine_reader(file_path):
 
 def clear_screen():
     """
-    Clears the terminal screen. Courtesy of u/GeorgeBoca/following reddit post.
+    Clears the terminal screen. Courtesy of u/GeorgeBoca/the following reddit post.
     https://www.reddit.com/r/learnpython/comments/qjooa7/how_to_auto_erase_previous_text_in_terminal_text/
     """
     CLEAR = "cls" if platform.system() == "Windows" else "clear"

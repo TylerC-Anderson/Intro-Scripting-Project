@@ -19,8 +19,19 @@ DIRECTIONS = ['North', 'South', 'East', 'West']
 EXIT_COMMAND = "Exit"
 VALID_INPUTS = COMMANDS + [EXIT_COMMAND]
 EXIT_ROOM_SENTINEL = "exit"
-GAME_OVER = "Thanks for playing."
+GAME_OVER = "Thanks for playing! I hope you enjoyed the game."
 
+# initialize the win condition items and the best ending items and sort them
+WIN_CON = [
+    'Universal Translator', 'Hangar Key',
+    'Ship Map', 'Space Suit',
+    'Cloaking Device', 'Baton',
+    ]
+WIN_CON.sort()
+BEST_ENDING = WIN_CON + ['Voice Activated Navigator']
+BEST_ENDING.sort()
+
+# initialize the error messages, also includes a search function for the error codes.
 NOT_IN_ROOM = "You don't see that item anywhere in here. Please try again."
 ALREADY_GRABBED = "You check your pockets... Yes, that item is still there. You don't think you need another one."
 INVALID_COMMAND = f"That is not a valid command. You need to enter one of the following commands: {str(VALID_INPUTS)}.\nIf you enter a move command, it must be in one of the following directions: {DIRECTIONS}.\n If you are trying to grab an item, you need to enter the items name with your grab command."
@@ -46,7 +57,7 @@ def errors_search(error_code):
     return error_message_text
 
 # setting the fields for the tuple in a variable for modularization
-fields = [
+room_fields = [
 'name', 'item', 
 'possible_directions',
 'required_items']
@@ -54,7 +65,7 @@ fields = [
 # initialize the tuple category, rooms
 RoomsTuple = namedtuple(
                 'Room',
-                fields,
+                room_fields,
                 )
 
 # actually make the rooms tuples
@@ -74,14 +85,14 @@ flight_control = RoomsTuple(
     name='Flight Control',
     possible_directions={'East':'South Junction'},
     item='Hangar Key',
-    required_items = None)
+    required_items = ['Ship Map'])
 south_junction = RoomsTuple(
     name='South Junction',
     possible_directions={
         'North':'Cell Blocks', 'West':'Flight Control',
         'East':'Empty Hall'},
     item='Ship Map',
-    required_items = None)
+    required_items = ['Universal Translator'])
 empty_hall = RoomsTuple(
     name='Empty Hall',
     possible_directions={
@@ -100,40 +111,40 @@ armory = RoomsTuple(
     possible_directions={
         'North':'Arsenal', 'West':'Empty Hall'},
     item='Cloaking Device',
-    required_items = None)
+    required_items = ['Ship Map'])
 arsenal = RoomsTuple(
     name='Arsenal',
     possible_directions={
         'South':'Armory', 'West':'North Junction'},
     item='Baton',
-    required_items = None)
+    required_items = ['Ship Map', 'Cloaking Device'])
 north_junction = RoomsTuple(
     name='North Junction',
     possible_directions={
         'North':'East EVA', 'East':'Arsenal',
         'West':'Cell Blocks'},
     item='Ship Map',
-    required_items = None)
+    required_items = ['Universal Translator', 'Cloaking Device'])
 east_eva = RoomsTuple(
     name='East EVA',
     possible_directions={
         'North':'Hangar', 'South':'North Junction',
         'West':'West EVA'},
     item='Space Suit',
-    required_items = None)
+    required_items = ['Hangar Key', 'Cloaking Device', 'Baton', 'Universal Translator', 'Ship Map'])
 west_eva = RoomsTuple(
     name='West EVA',
     possible_directions={
         'North':'Hangar', 'South':'Cell Blocks',
         'East':'East EVA'},
     item='Space Suit',
-    required_items = None)
+    required_items = ['Hangar Key', 'Cloaking Device', 'Baton', 'Universal Translator', 'Ship Map'])
 hangar = RoomsTuple(
     name='Hangar',
     possible_directions={
         'East':'East EVA', 'West':'West EVA'},
     item=None,
-    required_items=True)
+    required_items=WIN_CON)
 
 def rooms_dict():
     """Simple lookup function for the rooms list."""
@@ -152,6 +163,23 @@ def rooms_dict():
     'Hangar':hangar
     }
     return rooms
+
+def items_required(current_room, player_inventory: list):
+    """
+    Returns item responses when player enters a room without the required item.
+    """
+    no_item = {
+        'Ship Map':'No map, you have gotten lost on the way.',
+        'Universal Translator':'You cannot understand the language of the ship. You have taken a wrong turn.',
+        'Hangar Key':'This door needs a Key. You try to open the door without the key. The door refuses to open and an alarm sounds.',
+        'Cloaking Device':'There was no place to hide here. You have been spotted by one of the aliens.',
+        'Baton':'There was only one guard here, but without a weapon you were not able to stealthily dispatch it. The alien sounded an alarm.',
+        'Space Suit':'You were able to reach an escape pod, but wasted too much time looking for a space suit for the journey. An alien has spotted you and raised the alarm.'
+    }
+
+    for item in rooms[current_room].required_items:
+        if item not in player_inventory:
+            return no_item[item]
 
 rooms = rooms_dict()
 
@@ -178,17 +206,9 @@ def grab_item(item_choice: str, player_inventory: list, current_room):
     else:
         err_msg = NOT_IN_ROOM
 
+    # best_ending_check(player_inventory)
+
     return player_inventory, err_msg
-
-## Move Room
-"""
-PURPOSE: For allowing the player to move between rooms in the game.
-
-INPUTS:
-- current_room -- the room the player is currently in
-- user_input -- the command the player entered.
-- rooms -- the dictionary of rooms and their connections
-"""
 
 def navigate(current_room: str, user_input: str):
     """
