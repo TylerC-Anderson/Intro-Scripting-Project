@@ -89,7 +89,7 @@ def main():
         # Prompt message, using the delayed print function below to print the
         # prompt in a more user friendly way.
         delprint(
-            f"Current room: {rooms[current_room].name}\nCurrent inventory: {player_inventory}\nItem in room: {rooms[current_room].item}\n\nValid commands: {VALID_INPUTS}.\nValid directions: {DIRECTIONS}.\nExamine will redisplay an item or room description.\n\nWhat would you like to do?\n\n")
+            f"Current room: {rooms[current_room].name}\nCurrent inventory: {player_inventory}\nYou see the: {rooms[current_room].item}\n\nValid commands: {VALID_INPUTS}.\nValid directions: {DIRECTIONS}.\nExamine will redisplay an item or room description.\n\nWhat would you like to do?\n\n")
         user_input = input()
         
         # Checking if the user input is valid and splitting it into a command
@@ -200,7 +200,7 @@ def main():
 
 
 
-def delprint(text,delay_time=0.00000000000000000000000001):
+def delprint(text,delay_time=1e-150):
     """
     Short for delayed print. Prints character by character instead of printing
     all output to terminal at once. Makes for a nicer user experience.
