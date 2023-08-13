@@ -6,11 +6,13 @@ module for printing in a user friendly way.
 INPUTS: Accepts user input for navigation and grabbing items.
 """
 
+# import the game_utils module, which contains the rooms dictionary and the
+# navigate and grab_item functions.
 import game_utils
 import sys,time
 from pathlib import Path
 
-# initialize the conditions for the game
+# initialize the error codes and valid inputs for the game
 COMMANDS = ['Move', 'Grab']
 DIRECTIONS = ['North', 'South', 'East', 'West']
 EXIT_COMMAND = "Exit"
@@ -20,14 +22,16 @@ CANNOT_GO_THAT_WAY = "You bumped into a wall."
 GAME_OVER = "Thanks for playing."
 EXIT_ROOM_SENTINEL = "exit"
 
+# initialize the win conditions and best ending conditions
 WIN_CON = [
     'Universal Translator', 'Hangar Key',
     'Ship Map', 'Space Suit',
     'Cloaking Device', 'Baton',
     ]
-
 BEST_ENDING = WIN_CON + ['Voice Activated Navigator']
 
+# initialize the rooms dictionary from game_utils for readability
+# and the description document
 rooms = game_utils.rooms_dict()
 desc_doc = ''
 
@@ -36,6 +40,8 @@ def main():
     """
     Contains the loop that will run the game until the exit condition is satisfied. Starts in the Start room and prints a welcome message.
     """
+
+    # initialize the starting conditions for the game
     current_room = 'Start'
     player_inventory = []
     was_here = []
@@ -44,9 +50,9 @@ def main():
     item_or_direction = ''
     desc_doc = "Start_room.txt"
     doc_path = Path(__file__).parent.resolve() / 'Descriptions' /  desc_doc
+
     # starting welcome message
     doc_reader(doc_path)
-    
     delprint('\n\nWelcome to the game.\n\n')
 
     # Game loop running while exit conditions are not satisfied
@@ -58,6 +64,7 @@ def main():
             f"Current room: {rooms[current_room].name}\nCurrent inventory: {player_inventory}\n\nValid commands: {VALID_INPUTS}.\nValid directions: {DIRECTIONS}.\n\nWhat would you like to do?\n\n")
         user_input = input()
         
+        # Checking if the user input is valid and splitting it into a command
         if len(user_input) > 0:
             if user_input.title() != 'Exit':
                 split_input = user_input.title().strip().split()
@@ -67,6 +74,7 @@ def main():
             else:
                 item_or_direction = user_input.title().strip()
 
+        # If the user input is not valid, print an error message.
         else:
             delprint(f'{INVALID_COMMAND}\n\n')
 
@@ -78,6 +86,9 @@ def main():
             current_room, err_msg = game_utils.navigate(current_room, item_or_direction)
             if not err_msg:
                 delprint(f"You move to {rooms[current_room].name}\n\n")
+
+                # If the current room has been visited before, print a message, otherwise
+                # print the description of the room and add it to the was_here list.
                 if rooms[current_room].name in was_here:
                     delprint(f"You have been here before.\n\n")
                     continue
@@ -88,6 +99,9 @@ def main():
                     doc_reader(doc_path)
                     print('\n\n')
 
+        # If the command is grab, pass the item_or_direction and current room to the
+        # grab_item function below and update the player inventory. Print error message
+        # if there is one.
         elif command == 'Grab':
             player_inventory, err_msg = game_utils.grab_item(item_or_direction, player_inventory, current_room)
             if not err_msg:
@@ -112,7 +126,12 @@ def delprint(text,delay_time = 0.00000000025):
         sys.stdout.flush()
         time.sleep(delay_time)
 
+
 def doc_reader(file_path):
+    """
+    Reads the description documents for each room and prints them to the terminal
+    using delprint for user friendly terminal readouts.
+    """
     with file_path.open(mode='r', encoding='utf-8') as doc_file:
         for lines in doc_file:
             delprint(lines)

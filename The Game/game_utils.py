@@ -13,6 +13,7 @@ INPUTS: Item's name the player wishes to grab, and the current room.
 from collections import namedtuple
 import sys,time
 
+# initialize the error codes and valid inputs for the game
 NOT_IN_ROOM = "You don't see that item anywhere in here. Please try again."
 ALREADY_GRABBED = "You check your pockets... Yes, that item is still there. You don't think you need another one."
 COMMANDS = ['Move', 'Grab']
@@ -24,6 +25,7 @@ CANNOT_GO_THAT_WAY = "You bumped into a wall."
 GAME_OVER = "Thanks for playing."
 EXIT_ROOM_SENTINEL = "exit"
 
+# setting the fields for the tuple in a variable for modularization
 fields = [
 'name', 'item', 
 'possible_directions',
@@ -115,7 +117,6 @@ hangar = RoomsTuple(
 
 def rooms_dict():
     """Simple lookup function for the rooms list."""
-
     rooms = {
     'Start':start,
     'Cell Blocks':cell_blocks,
@@ -134,14 +135,16 @@ def rooms_dict():
 
 rooms = rooms_dict()
 
-
 def grab_item(item_choice: str, player_inventory: list, current_room):
-    """   
+    """
+    Given an item_choice, player_inventory, and current_room; return the
+    player_inventory updated with the item choice and err_msg (if there is one).
     """
     err_msg = ''
 
     # if the item chosen exists in this room
     if item_choice == rooms[current_room].item:
+
         # and the player does not already have the item
         # add item to player inventory
         if item_choice not in player_inventory:
@@ -173,6 +176,8 @@ def navigate(current_room: str, user_input: str):
     next_room -- where you are after or EXIT_ROOM_SENTINEL
     err_msg -- message to print, if any, empty, GAME_OVER, INVALID_DIRECTION, or CANNOT_GO_THAT_WAY
     """
+
+    # initialize next_room and err_msg
     next_room = current_room
     err_msg = ''
     rooms = rooms_dict()
@@ -187,6 +192,8 @@ def navigate(current_room: str, user_input: str):
             delprint("Progress is NOT saved.\n\n")
             certainty_check = ''
 
+            # While loop to ensure the player is certain about their choice to
+            # exit the game, after informing them there is no save.
             while certainty_check not in ('y','n'):
                 delprint("Type y for yes or n for no.\n")
                 certainty_check = input()
@@ -203,7 +210,6 @@ def navigate(current_room: str, user_input: str):
 
         # Then checking if the valid command is a valid direction the room has
         # then moving player according to their command if so
-
         elif user_input in rooms[current_room].possible_directions:
             next_room = rooms[current_room].possible_directions[user_input]
             return next_room, err_msg
