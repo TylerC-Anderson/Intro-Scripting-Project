@@ -28,6 +28,8 @@ def main():
     current_room = 'Start'
     player_inventory = []
     err_msg = ''
+    command = ''
+    item_or_direction = ''
 
     # starting welcome message
     delprint(
@@ -41,15 +43,18 @@ def main():
         delprint(
             f"Current room: {rooms[current_room].name}\nCurrent inventory: {player_inventory}\n\nValid commands: {VALID_INPUTS}.\nValid directions: {DIRECTIONS}.\n\nWhat would you like to do?\n\n")
         user_input = input()
+        
+        if len(user_input) > 0:
+            if user_input.title() != 'Exit':
+                split_input = user_input.title().strip().split()
+                command = split_input[0]
+                item_or_direction = ' '.join(split_input[1:])
 
-        if user_input.title() != 'Exit':
-            split_input = user_input.title().strip().split()
-            command = split_input[0]
-            item_or_direction = ' '.join(split_input[1:])
+            else:
+                item_or_direction = user_input.title().strip()
 
         else:
-            item_or_direction = user_input.title().strip()
-            command = ''
+            delprint(f'{INVALID_COMMAND}\n\n')
 
         # Passing the current room and user_input to the navigate function below
         # and changing the current room variable and error message equal to its
@@ -70,7 +75,7 @@ def main():
         if err_msg:
             delprint(f'{err_msg}\n\n')
 
-def delprint(text,delay_time = 0.0025):
+def delprint(text,delay_time = 0.00000000025):
     """
     Short for delayed print. Prints character by character instead of printing
     all output to terminal at once. Makes for a nicer user experience.
