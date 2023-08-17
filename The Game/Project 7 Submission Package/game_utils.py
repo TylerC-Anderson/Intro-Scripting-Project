@@ -11,6 +11,7 @@ INPUTS: Item's name the player wishes to grab, and the current room.
 """
 
 from collections import namedtuple
+from pathlib import Path
 import sys,time
 
 # initialize the error codes and valid inputs for the game
@@ -73,78 +74,80 @@ start = RoomsTuple(
     name='Your Cell',
     possible_directions={'East':'Cell Blocks'},
     item = None,
-    required_items = None)
+    required_items = [])
 cell_blocks = RoomsTuple(
     name='Cell Blocks', 
     possible_directions={
         'North':'West EVA', 'South':'South Junction',
         'East':'North Junction'},
     item='Universal Translator',
-    required_items = None)
+    required_items = [])
 flight_control = RoomsTuple(
     name='Flight Control',
     possible_directions={'East':'South Junction'},
     item='Hangar Key',
-    required_items = None)
+    required_items = [])
 south_junction = RoomsTuple(
     name='South Junction',
     possible_directions={
         'North':'Cell Blocks', 'West':'Flight Control',
         'East':'Empty Hall'},
     item='Ship Map',
-    required_items = None)
+    required_items = [])
 empty_hall = RoomsTuple(
     name='Empty Hall',
     possible_directions={
         'South':'Hidden Room', 'West':'South Junction',
         'East':'Armory'},
     item=None,
-    required_items = None)
+    required_items = [])
 hidden_room = RoomsTuple(
     name='Hidden Room',
     possible_directions={
         'North':'Empty Hall'},
     item='Voice Activated Navigator',
-    required_items = None)
+    required_items = [])
 armory = RoomsTuple(
     name='Armory',
     possible_directions={
         'North':'Arsenal', 'West':'Empty Hall'},
     item='Cloaking Device',
-    required_items = None)
+    required_items = [])
 arsenal = RoomsTuple(
     name='Arsenal',
     possible_directions={
         'South':'Armory', 'West':'North Junction'},
     item='Baton',
-    required_items = None)
+    required_items = [])
 north_junction = RoomsTuple(
     name='North Junction',
     possible_directions={
         'North':'East EVA', 'East':'Arsenal',
         'West':'Cell Blocks'},
     item='Ship Map',
-    required_items = None)
+    required_items = [])
 east_eva = RoomsTuple(
     name='East EVA',
     possible_directions={
         'North':'Hangar', 'South':'North Junction',
         'West':'West EVA'},
     item='Space Suit',
-    required_items = None)
+    required_items = [])
 west_eva = RoomsTuple(
     name='West EVA',
     possible_directions={
         'North':'Hangar', 'South':'Cell Blocks',
         'East':'East EVA'},
     item='Space Suit',
-    required_items = None)
+    required_items = [])
 hangar = RoomsTuple(
     name='Hangar',
     possible_directions={
         'East':'East EVA', 'West':'West EVA'},
     item=None,
     required_items=WIN_CON)
+
+
 
 def rooms_dict():
     """Simple lookup function for the rooms list."""
@@ -164,7 +167,9 @@ def rooms_dict():
     }
     return rooms
 
-def items_required(current_room, player_inventory: list):
+rooms = rooms_dict()
+
+def missing_item_responses(current_room, inventory: list):
     """
     Returns item responses when player enters a room without the required item.
     """
@@ -177,14 +182,11 @@ def items_required(current_room, player_inventory: list):
         'Space Suit':'You were able to reach an escape pod, but wasted too much time looking for a space suit for the journey. An alien has spotted you and raised the alarm.'
     }
 
-    # if current_room != EXIT_ROOM_SENTINEL and rooms[current_room].item not in player_inventory:
     for item in rooms[current_room].required_items:
-        if item not in player_inventory:
+        if item not in inventory:
             return no_item[item]
 
-rooms = rooms_dict()
-
-def grab_item(item_choice: str, player_inventory: list, current_room):
+def grab_item(item_choice: str, inventory: list, current_room):
     """
     Given an item_choice, player_inventory, and current_room; return the
     player_inventory updated with the item choice and err_msg (if there is one).
@@ -196,8 +198,8 @@ def grab_item(item_choice: str, player_inventory: list, current_room):
 
         # and the player does not already have the item
         # add item to player inventory
-        if item_choice not in player_inventory:
-            player_inventory.append(item_choice)
+        if item_choice not in inventory:
+            inventory.append(item_choice)
         
         # for when the item chosen is already in player inventory
         else:
@@ -207,9 +209,7 @@ def grab_item(item_choice: str, player_inventory: list, current_room):
     else:
         err_msg = NOT_IN_ROOM
 
-    # best_ending_check(player_inventory)
-
-    return player_inventory, err_msg
+    return inventory, err_msg
 
 def navigate(current_room: str, user_input: str):
     """
@@ -223,37 +223,16 @@ def navigate(current_room: str, user_input: str):
     err_msg = ''
     rooms = rooms_dict()
 
-    # First checking if command links to valid input
-    if user_input in DIRECTIONS or user_input == EXIT_COMMAND:
-        
-        # Then checking for exit command, and printing GAME_OVER message and moving
-        # next room to the exit state.
-        if user_input.lower() == EXIT_COMMAND.lower():
-            delprint("Are you sure you'd like to exit?\n")
-            delprint("Progress is NOT saved.\n\n")
-            certainty_check = ''
+    # Then checking for exit command, and printing GAME_OVER message and moving
+    # next room to the exit state.
 
-            # While loop to ensure the player is certain about their choice to
-            # exit the game, after informing them there is no save.
-            while certainty_check not in ('y','n'):
-                delprint("Type y for yes or n for no.\n")
-                certainty_check = input()
-                certainty_check.lower().strip()
-                certainty_check = certainty_check[0]
-                if certainty_check == 'y':
-                    err_msg = GAME_OVER
-                    next_room = EXIT_ROOM_SENTINEL
-                elif certainty_check == 'n':
-                    pass
-                else:
-                    delprint("Invalid input, please try again.\n\n")
-                    continue
+    # First checking if command links to valid input
+    if user_input in DIRECTIONS:
 
         # Then checking if the valid command is a valid direction the room has
         # then moving player according to their command if so
-        elif user_input in rooms[current_room].possible_directions:
+        if user_input in rooms[current_room].possible_directions:
             next_room = rooms[current_room].possible_directions[user_input]
-            return next_room, err_msg
 
         # If the input is valid, but the direction given is not exit or a direction
         # the room has, we are assuming the player can't go that way. Output
@@ -261,11 +240,65 @@ def navigate(current_room: str, user_input: str):
         else:
             err_msg = CANNOT_GO_THAT_WAY
 
+    elif user_input.lower() == EXIT_COMMAND.lower():
+        delprint("Are you sure you'd like to exit?\n")
+        delprint("Progress is NOT saved.\n\n")
+        certainty_check = ''
+
+        # While loop to ensure the player is certain about their choice to
+        # exit the game, after informing them there is no save.
+        while certainty_check not in ('y','n'):
+            delprint("Type y for yes or n for no.\n")
+            certainty_check = input()
+            certainty_check.lower().strip()
+            certainty_check = certainty_check[0]
+            if certainty_check == 'y':
+                err_msg = GAME_OVER
+                next_room = EXIT_ROOM_SENTINEL
+            elif certainty_check == 'n':
+                pass
+            else:
+                delprint("Invalid input, please try again.\n\n")
+                continue
+
     # Then checking if the user_input links is not a valid input, assigning
     # appropriate error message.
     else:
         err_msg = INVALID_COMMAND
+
+    # If the player has the win condition items in their inventory, print the
+    # win message and break the loop.
+
     return next_room, err_msg
+
+def test_mode_check(test_mode_input: str):
+    """
+    """
+
+    parent_dir = Path(__file__).parent.resolve() / 'Test Descriptions'
+    inventory = []
+    
+    delprint("Press Y to use god mode (all items in inventory, WinCon ready). Enter to not enable god mode.\n")
+    test_mode_input = input().lower().strip()
+    if len(test_mode_input) == 0:
+        pass
+    elif test_mode_input[0] == 'y':
+        delprint("God mode enabled.\n")
+        
+        delprint("Press Y for best ending. Press enter for standard ending.\n")
+        test_mode_input = input().lower().strip()
+        if len(test_mode_input) == 0:
+            inventory = WIN_CON
+            pass
+        elif test_mode_input[0] == 'y':
+            delprint("Best ending enabled.\n")
+            inventory = BEST_ENDING
+        else:
+            inventory = WIN_CON
+
+    return parent_dir, inventory
+
+
 
 def delprint(text,delay_time = 0.0025):
     """

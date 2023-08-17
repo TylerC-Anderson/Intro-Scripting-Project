@@ -6,7 +6,8 @@
 """
 PURPOSE: Contains the main script for the game, including the play loop and a
 module for printing in a user friendly way. Also contains win conditions,
-decision branching for those win cons and error messages.
+decision branching for those win cons and error messages. Also manages the
+player inventory and the current room.
 
 INPUTS: Accepts user input for navigation and grabbing items.
 
@@ -48,7 +49,6 @@ BEST_ENDING.sort()
 rooms = game_utils.rooms_dict()
 err_list = game_utils.errors_search
 desc_doc = ''
-best_ending_check = False
 
 # initialize the delay print default value based on the OS
 if platform.system() == "Windows":
@@ -69,7 +69,11 @@ def main():
     err_msg = ''
     item_or_direction = ''
     desc_doc = "Your Cell_room.txt"
-    
+
+    # initialize the win and loss condition variables
+    player_has_required_items = all(item in player_inventory for item in rooms[current_room].required_items)
+    player_has_win_con = all(item in player_inventory for item in WIN_CON)
+    player_has_best_ending = all(item in player_inventory for item in BEST_ENDING)
 
     # initialize the parent directory for the description documents
     parent_dir = Path(__file__).parent.resolve() / 'Descriptions'
@@ -84,9 +88,6 @@ def main():
 
     # starting welcome message
     delprint('\n\nWelcome to the game.\n\n')
-
-    # prompts user for play or test mode, and for god mode if test mode is
-    # selected, and for best ending if god mode is enabled. Comment out if you want to skip prompting.
     delprint("Press enter for Play mode, or T for Test mode. Test mode uses short test descriptions for all items and rooms.\n")
     test_mode_input = input().lower().strip()
 
@@ -100,25 +101,7 @@ def main():
     # selected, or best ending if also selected.
     elif test_mode_input[0] == 't':
         delprint("Test mode enabled.\n")
-        parent_dir = Path(__file__).parent.resolve() / 'Test Descriptions'
-        
-        delprint("Press Y to use god mode (all items in inventory, WinCon ready). Enter to not enable god mode.\n")
-        test_mode_input = input().lower().strip()
-        if len(test_mode_input) == 0:
-            pass
-        elif test_mode_input[0] == 'y':
-            delprint("God mode enabled.\n")
-            
-            delprint("Press Y for best ending. Press enter for standard ending.\n")
-            test_mode_input = input().lower().strip()
-            if len(test_mode_input) == 0:
-                player_inventory = WIN_CON
-                pass
-            elif test_mode_input[0] == 'y':
-                delprint("Best ending enabled.\n")
-                player_inventory = BEST_ENDING
-            else:
-                player_inventory = WIN_CON
+        parent_dir, player_inventory = game_utils.test_mode_check(test_mode_input)
 
     # finish setting full doc path
     doc_path = parent_dir /  desc_doc
@@ -165,153 +148,164 @@ def main():
         user_input = input()
         clear_screen()
 
-        # Checking if the user input is valid and splitting it into a command
+        # Checking if the user input is valid and splitting it if it's not the
+        # exit command. If it is the exit command we take that as the
+        # item_or_direction variable instead
         if len(user_input) > 0:
             if user_input.title() != 'Exit':
                 split_input = user_input.title().strip().split()
                 command = split_input[0]
                 item_or_direction = ' '.join(split_input[1:])
 
+                # for testing purposes
+                # print(f'Command: {command}')
+                # print(f"Item_or_direction: {item_or_direction}")
+
             else:
                 item_or_direction = user_input.title().strip()
-
-        # If the user input is not valid, print an error message.
-        else:
-            delprint(f'{game_utils.errors_search("INVALID_COMMAND")}\n\n')
-
-        # Passing the current room and user_input to the navigate function below
-        # and changing the current room variable and error message equal to its
-        # output.
-
-        if command == 'Move' or item_or_direction == EXIT_COMMAND:
-            current_room, err_msg = game_utils.navigate(current_room, item_or_direction)
-            if not err_msg:
-                delprint(f"You move {item_or_direction} to {rooms[current_room].name}\n\n")
-
-                # If the current room has been visited before, print a message, otherwise
-                # print the description of the room and add it to the was_here list.
-                if rooms[current_room].name in was_here:
-                    delprint(f"You have been here before.\n")
-                    continue
-
-                # If the player does not have the right items in their inventory to be
-                # in the current room, print the feedback and game over message
-                elif rooms[current_room].required_items != None and player_inventory != BEST_ENDING and player_inventory != WIN_CON:
-                    fail_condition = game_utils.items_required(current_room, player_inventory)
             
-                    if fail_condition != None:
-                        delprint(F'{fail_condition}\n')
-                        delprint(F'{PLAYER_DEATH}Would you like to try again? (Y/N)\n')
-                        user_input = input().strip().lower()
+            # Passing the current room and item_or_directions to the navigate function below
+            # if the command is 'Move' and setting the current room variable and error
+            # message equal to its output.
 
-                        # If the player wants to try again, respawn them in the previous room
-                        # and remove the current room from the was_here list. Otherwise, print
-                        # the game over message and break the loop.
-                        if user_input == 'y':
-                            if rooms[previous_room].name != 'Your Cell':
-                                delprint(F'You have respawned back in {rooms[previous_room].name}.\n')
-                                current_room = previous_room
+            if command == 'Move' or item_or_direction == EXIT_COMMAND:
+                current_room, err_msg = game_utils.navigate(current_room, item_or_direction)
+
+                if not err_msg:
+                    delprint(f"You move {item_or_direction} to {rooms[current_room].name}\n\n")
+
+                    # If the current room has been visited before, print a message, otherwise
+                    # check for required items.
+                    if rooms[current_room].name in was_here:
+                        delprint(f"You have been here before.\n")
+                        continue
+
+                    # If the player does not have the right items in their inventory to be
+                    # in the current room, print the feedback and game over message
+                    if rooms[current_room].required_items != [] and not player_has_required_items:
+                        fail_condition = game_utils.missing_item_responses(current_room, player_inventory)
+                
+                        if fail_condition != None:
+                            delprint(F'{fail_condition}\n')
+                            delprint(F'{PLAYER_DEATH}Would you like to try again? (Y/N)\n')
+                            user_input = input().strip().lower()
+
+                            # If the player wants to try again, respawn them in the previous room.
+                            # Otherwise, print the game over message and break the loop.
+                            if user_input == 'y':
+                                if rooms[previous_room].name != 'Your Cell':
+                                    delprint(F'You have respawned back in {rooms[previous_room].name}.\n')
+                                    current_room = previous_room
+                                    continue
+                                elif rooms[previous_room].name == 'Your Cell':
+                                    delprint(F'You have respawned back in {rooms[previous_room].name}.\n')
+                                    current_room = previous_room
+                                    continue
+                            elif user_input == 'n':
+                                delprint(F'{GAME_OVER}\n')
+                                command = 'Exit'
+                                current_room = EXIT_ROOM_SENTINEL
+                                break
+
+                    # if the room has not been visited before, add it to the was_here list for tracking
+                    if rooms[current_room].name not in was_here:
+                        was_here.append(rooms[current_room].name)
+                        desc_doc = f"{rooms[current_room].name}_room.txt"
+                        doc_path = parent_dir /  desc_doc
+                        doc_reader(doc_path)
+                        print('\n')
+                else:
+                    delprint(f'{err_msg}\n')
+                # if the player is in the victory room, check if they have the win condition
+                    if rooms[current_room] == rooms['Hangar']:
+                        if player_has_win_con:
+                            delprint(f'\n\nPress enter to find out if you escape!\n')
+                            input()
+                            # If the player has the best ending items in their inventory, print the
+                            # best ending message and break the loop.
+                            if player_has_best_ending:
+                                desc_doc = "Best_Win.txt"
+                                doc_path = parent_dir /  desc_doc
+                                doc_reader(doc_path)
+                                print('\n')
+                                delprint(F'{GAME_OVER}!!\n\n')
+                                delprint(F'{END_CREDITS}\n\n')
+                                input(F'Press enter to exit the game.\n\n')
+                                current_room = EXIT_ROOM_SENTINEL
                                 continue
-                            elif rooms[previous_room].name == 'Your Cell':
-                                delprint(F'You have respawned back in {rooms[previous_room].name}.\n')
-                                current_room = previous_room
+
+                            # Otherwise, print the
+                            # standard ending message and break the loop.
+                            else:
+                                desc_doc = "Win_Msg.txt"
+                                doc_path = parent_dir /  desc_doc
+                                doc_reader(doc_path)
+                                print('\n')
+                                delprint(F'{GAME_OVER}!\n\n')
+                                delprint(F'{END_CREDITS}\n\n')
+                                current_room = EXIT_ROOM_SENTINEL
                                 continue
-                        elif user_input == 'n':
-                            delprint(F'{GAME_OVER}\n')
-                            command = 'Exit'
-                            current_room = EXIT_ROOM_SENTINEL
-                            break
-                if rooms[current_room].name not in was_here:
-                    was_here.append(rooms[current_room].name)
-                    desc_doc = f"{rooms[current_room].name}_room.txt"
-                    doc_path = parent_dir /  desc_doc
-                    doc_reader(doc_path)
-                    print('\n')
+            # If the command is grab, pass the item_or_direction and current room to the
+            # grab_item function below and update the player inventory. Print error message
+            # if there is one.
+            elif command == 'Grab':
+                player_inventory, err_msg = game_utils.grab_item(item_or_direction, player_inventory, current_room)
 
-        # If the command is grab, pass the item_or_direction and current room to the
-        # grab_item function below and update the player inventory. Print error message
-        # if there is one.
-        elif command == 'Grab':
-            player_inventory, err_msg = game_utils.grab_item(item_or_direction, player_inventory, current_room)
-
-            # If there is no error, print a message and the description of the item
-            if not err_msg:
-                delprint(f"You pick up the {rooms[current_room].item}\n\n")
-                desc_doc = f"{rooms[current_room].item}_item.txt"
-                doc_path = parent_dir /  desc_doc
-                doc_reader(doc_path)
-                print('\n')
-
-        # If the player wishes to Examine, print the description of the item or direction
-        # again for the player.
-        elif command == 'Examine':
-
-            # If the player is examining a room they are in or have been to,
-            # print the room description again.
-            if item_or_direction == rooms[current_room].name or item_or_direction == 'Room':
-                desc_doc = f"{current_room}_room.txt"
-                doc_path = parent_dir /  desc_doc
-                examine_reader(doc_path)
-                print('\n')
-
-            # If the player is examining an item they have in inventory or is
-            # in the room, print the item description again. Includes Item as
-            # an alias for current room item.
-            elif item_or_direction in player_inventory or item_or_direction == rooms[current_room].item or item_or_direction == 'Item':
-                if rooms[current_room].item == None:
-                    delprint(f'You see nothing in this room.\n\n')
-                elif item_or_direction == 'Item':
+                # If there is no error, print a message and the description of the item
+                if not err_msg:
+                    delprint(f"You pick up the {rooms[current_room].item}\n\n")
                     desc_doc = f"{rooms[current_room].item}_item.txt"
                     doc_path = parent_dir /  desc_doc
                     doc_reader(doc_path)
                     print('\n')
+
                 else:
-                    desc_doc = f"{item_or_direction}_item.txt"
+                    delprint(f'{err_msg}\n')
+            # If the player wishes to Examine, print the description of the item or direction
+            # again for the player.
+            elif command == 'Examine':
+
+                # If the player is examining a room they are in or have been to,
+                # print the room description again.
+                if item_or_direction == rooms[current_room].name or item_or_direction == 'Room':
+                    desc_doc = f"{current_room}_room.txt"
                     doc_path = parent_dir /  desc_doc
-                    doc_reader(doc_path)
+                    examine_reader(doc_path)
                     print('\n')
 
-            # Otherwise, print an error message.
-            else:
-                delprint(f'{err_list("NOT_VISITED_OR_GRABBED")}\n\n')
+                # If the player is examining an item they have in inventory or is
+                # in the room, print the item description again. Includes Item as
+                # an alias for current room item.
+                elif item_or_direction in player_inventory or item_or_direction == rooms[current_room].item or item_or_direction == 'Item':
+                    if rooms[current_room].item == None:
+                        delprint(f'You see nothing in this room.\n\n')
+                    elif item_or_direction == 'Item':
+                        desc_doc = f"{rooms[current_room].item}_item.txt"
+                        doc_path = parent_dir /  desc_doc
+                        doc_reader(doc_path)
+                        print('\n')
+                    else:
+                        desc_doc = f"{item_or_direction}_item.txt"
+                        doc_path = parent_dir /  desc_doc
+                        doc_reader(doc_path)
+                        print('\n')
 
-        # If the player inputs a command that is not valid, print an error message.
+                # Otherwise, print an error message.
+                else:
+                    delprint(f'{err_list("NOT_VISITED_OR_GRABBED")}\n\n')
+
+            # If there is any error message, print it out using delprint.
+            # Also prints game over message when exit condition occurs.
+            elif err_msg:
+                delprint(f'{err_msg}\n\n')
+
+            # If the user input does not match above commands, it is not valid, so print an error message.
+            else:
+                delprint(f'{game_utils.errors_search("INVALID_COMMAND")}\n\n')
+
+        # If the user input is empty it is not valid, print an error message.
         else:
             delprint(f'{game_utils.errors_search("INVALID_COMMAND")}\n\n')
-
-        # If there is any error message, print it out using delprint.
-        # Also prints game over message when exit condition occurs.
-        if err_msg:
-            delprint(f'{err_msg}\n\n')
-
-        # If the player has the win condition items in their inventory, print the
-        # win message and break the loop.
-        if (player_inventory == WIN_CON or player_inventory == BEST_ENDING) and rooms[current_room].name == rooms['Hangar'].name:
-
-            delprint(f'\n\nPress enter to find out if you escape!\n')
-            input()
-            # If the player has the best ending items in their inventory, print the
-            # best ending message and break the loop.
-            if player_inventory == BEST_ENDING:
-                desc_doc = "Best_Win.txt"
-                doc_path = parent_dir /  desc_doc
-                doc_reader(doc_path)
-                print('\n')
-                delprint(F'{GAME_OVER}!!\n\n')
-                delprint(F'{END_CREDITS}\n\n')
-                input(F'Press enter to exit the game.\n\n')
-                current_room = EXIT_ROOM_SENTINEL
-
-            # If the player has the standard ending items in their inventory, print the
-            # standard ending message and break the loop.
-            else:
-                desc_doc = "Win_Msg.txt"
-                doc_path = parent_dir /  desc_doc
-                doc_reader(doc_path)
-                print('\n')
-                delprint(F'{GAME_OVER}!\n\n')
-                delprint(F'{END_CREDITS}\n\n')
-                current_room = EXIT_ROOM_SENTINEL
 
 def delprint(text, delay_time=del_print_default):
     """
@@ -352,3 +346,79 @@ def clear_screen():
     os.system(CLEAR)
 
 main()
+
+
+
+""" Deprecations Archive """ # [
+    # prompts user for play or test mode, and for god mode if test mode is
+    # selected, and for best ending if god mode is enabled. Comment out if you want to skip prompting.
+    # delprint("Press enter for Play mode, or T for Test mode. Test mode uses short test descriptions for all items and rooms.\n")
+    # test_mode_input = input().lower().strip()
+
+    # # first checking for length of user input. If it is empty, then play mode is selected.
+    # # will also repeat this syntax for all other user testing input prompts.
+    # if len(test_mode_input) == 0:
+    #     pass
+
+    # # sets the parent directory to the test descriptions if test mode is
+    # # selected, and sets the player inventory to the win con if god mode is
+    # # selected, or best ending if also selected.
+    # elif test_mode_input[0] == 't':
+    #     delprint("Test mode enabled.\n")
+    #     parent_dir = Path(__file__).parent.resolve() / 'Test Descriptions'
+        
+    #     delprint("Press Y to use god mode (all items in inventory, WinCon ready). Enter to not enable god mode.\n")
+    #     test_mode_input = input().lower().strip()
+    #     if len(test_mode_input) == 0:
+    #         pass
+    #     elif test_mode_input[0] == 'y':
+    #         delprint("God mode enabled.\n")
+            
+    #         delprint("Press Y for best ending. Press enter for standard ending.\n")
+    #         test_mode_input = input().lower().strip()
+    #         if len(test_mode_input) == 0:
+    #             player_inventory = WIN_CON
+    #             pass
+    #         elif test_mode_input[0] == 'y':
+    #             delprint("Best ending enabled.\n")
+    #             player_inventory = BEST_ENDING
+    #         else:
+    #             player_inventory = WIN_CON
+
+
+    # # If the player has the win condition items in their inventory, print the
+    # # win message and break the loop.
+    # player_has_win_con = all(item in player_inventory for item in WIN_CON)
+    # player_has_best_ending = all(item in player_inventory for item in BEST_ENDING)
+    # if player_has_win_con or player_has_best_ending and rooms[current_room].name == rooms['Hangar'].name:
+
+    #     delprint(f'\n\nPress enter to find out if you escape!\n')
+    #     input()
+    #     # If the player has the best ending items in their inventory, print the
+    #     # best ending message and break the loop.
+    #     if player_inventory == BEST_ENDING:
+    #         desc_doc = "Best_Win.txt"
+    #         doc_path = parent_dir /  desc_doc
+    #         doc_reader(doc_path)
+    #         print('\n')
+    #         delprint(F'{GAME_OVER}!!\n\n')
+    #         delprint(F'{END_CREDITS}\n\n')
+    #         input(F'Press enter to exit the game.\n\n')
+    #         current_room = EXIT_ROOM_SENTINEL
+
+    #     # If the player has the standard ending items in their inventory, print the
+    #     # standard ending message and break the loop.
+    #     else:
+    #         desc_doc = "Win_Msg.txt"
+    #         doc_path = parent_dir /  desc_doc
+    #         doc_reader(doc_path)
+    #         print('\n')
+    #         delprint(F'{GAME_OVER}!\n\n')
+    #         delprint(F'{END_CREDITS}\n\n')
+    #         current_room = EXIT_ROOM_SENTINEL
+# ]
+
+
+                # # for testing purposes
+                # print(f'Current Room: {current_room}')
+                # print(f'Error Message: {err_msg}')
