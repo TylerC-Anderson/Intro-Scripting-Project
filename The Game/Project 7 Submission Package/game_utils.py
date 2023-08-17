@@ -85,14 +85,14 @@ flight_control = RoomsTuple(
     name='Flight Control',
     possible_directions={'East':'South Junction'},
     item='Hangar Key',
-    required_items = ['Ship Map'])
+    required_items = None)
 south_junction = RoomsTuple(
     name='South Junction',
     possible_directions={
         'North':'Cell Blocks', 'West':'Flight Control',
         'East':'Empty Hall'},
     item='Ship Map',
-    required_items = ['Universal Translator'])
+    required_items = None)
 empty_hall = RoomsTuple(
     name='Empty Hall',
     possible_directions={
@@ -111,34 +111,34 @@ armory = RoomsTuple(
     possible_directions={
         'North':'Arsenal', 'West':'Empty Hall'},
     item='Cloaking Device',
-    required_items = ['Ship Map'])
+    required_items = None)
 arsenal = RoomsTuple(
     name='Arsenal',
     possible_directions={
         'South':'Armory', 'West':'North Junction'},
     item='Baton',
-    required_items = ['Ship Map', 'Cloaking Device'])
+    required_items = None)
 north_junction = RoomsTuple(
     name='North Junction',
     possible_directions={
         'North':'East EVA', 'East':'Arsenal',
         'West':'Cell Blocks'},
     item='Ship Map',
-    required_items = ['Universal Translator'])
+    required_items = None)
 east_eva = RoomsTuple(
     name='East EVA',
     possible_directions={
         'North':'Hangar', 'South':'North Junction',
         'West':'West EVA'},
     item='Space Suit',
-    required_items = ['Hangar Key', 'Cloaking Device', 'Baton', 'Universal Translator', 'Ship Map'])
+    required_items = None)
 west_eva = RoomsTuple(
     name='West EVA',
     possible_directions={
         'North':'Hangar', 'South':'Cell Blocks',
         'East':'East EVA'},
     item='Space Suit',
-    required_items = ['Hangar Key', 'Cloaking Device', 'Baton', 'Universal Translator', 'Ship Map'])
+    required_items = None)
 hangar = RoomsTuple(
     name='Hangar',
     possible_directions={
